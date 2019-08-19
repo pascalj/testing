@@ -12,7 +12,7 @@ namespace mephisto {
 
   void initlog() {
     if(spdlog::get("alpaka") == nullptr) {
-      spdlog::set_pattern("[%S.%e][%t] %v");
+      spdlog::set_pattern("l,%S.%e,%t,%v");
       spdlog::stdout_logger_mt("alpaka");
     }
   }

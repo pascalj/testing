@@ -38,9 +38,9 @@ public:
       LocalArray<std::size_t, Dim> offsets,
       LocalArray<std::size_t, Dim> extents)
     : _offsets(
-          alpaka::vec::createVecFromIndexedFn<dim_t, arr_to_vec>(offsets))
+          alpaka::vec::createVecFromIndexedFnWorkaround<dim_t, std::size_t, arr_to_vec>(offsets))
     , _extents(
-          alpaka::vec::createVecFromIndexedFn<dim_t, arr_to_vec>(extents))
+          alpaka::vec::createVecFromIndexedFnWorkaround<dim_t, std::size_t, arr_to_vec>(extents))
   {
   }
 

@@ -51,7 +51,7 @@ public:
           (numElements > threadLastElemIdx) ? threadLastElemIdx
                                             : numElements);
       for (TIdx a(threadFirstElemIdx); a < threadLastElemIdxClipped; ++a) {
-        _func(block_index, a, res, A);
+        _func(i, a, res, A);
       }
     }
   }
@@ -115,11 +115,11 @@ struct AlpakaExecutor {
           continue;
         }
         // 1. create workdiv from block
-        auto extents = alpaka::vec::createVecFromIndexedFn<dim, arr_to_vec>(
+        auto extents = alpaka::vec::createVecFromIndexedFnWorkaround<dim, std::size_t, arr_to_vec>(
             block.extents());
         auto thread_extent =
-            alpaka::vec::createVecFromIndexedFn<dim, unity_vec>(
-                  static_cast<std::size_t>(block.size()));
+            alpaka::vec::createVecFromIndexedFnWorkaround<dim, std::size_t, unity_vec>(
+                  static_cast<std::size_t>(block.size() / 4));
 
         auto offsets = block.offsets();
 
@@ -168,7 +168,7 @@ struct AlpakaExecutor {
   }
 
   unsigned int concurrency() const {
-    return Entity::total();
+    return Entity::total() * 4;
   }
 };
 
@@ -183,7 +183,11 @@ struct AlpakaExecutionContext {
 
   AlpakaExecutionContext()
     : _host_device(alpaka::pltf::getDevByIdx<alpaka::pltf::PltfCpu>(0u))
+#ifdef ALPAKA_ACC_GPU_CUDA_ENABLED
+    , _queue(Entity{0}.device())
+#else
     , _queue(_host_device)
+#endif
   {
   }
 
