@@ -1,7 +1,6 @@
 #include "gtest/gtest.h"
 #include "transform_reduce_test.h"
 #include <libdash.h>
-#include <mephisto/algorithm/for_each>
 #include <mephisto/execution>
 #include <mephisto/array>
 #include <mephisto/entity>

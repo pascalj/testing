@@ -5,7 +5,6 @@
 #include <alpaka/alpaka.hpp>
 #include <libdash.h>
 #include <mephisto/array>
-#include <mephisto/algorithm/for_each>
 
 int meph_argc;
 char** meph_argv;
@@ -42,9 +41,6 @@ public:
   using DevHost  = alpaka::dev::Dev<Host>;
   using PltfHost = alpaka::pltf::Pltf<DevHost>;
   using PltfAcc  = alpaka::pltf::Pltf<DevAcc>;
-
-  // The mephisto kernel to use in the executor
-  using Kernel = mephisto::ForEachWithIndexKernel;
 
 protected:
   virtual void SetUp()

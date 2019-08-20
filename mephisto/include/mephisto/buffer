@@ -44,15 +44,14 @@ public:
   {
   }
 
-
   ALPAKA_FN_HOST_ACC
-  auto offsets() const
+  auto &offsets() const
   {
     return _offsets;
   }
 
   ALPAKA_FN_HOST_ACC
-  auto extents() const
+  auto &extents() const
   {
     return _extents;
   }
@@ -88,7 +87,8 @@ struct DeviceDataBuffer {
   static constexpr size_t MetaOffset =
       sizeof(Meta) + sizeof(Meta) % Alignment::value;
 
-  alpaka::mem::buf::Buf<device_t, char, alpaka::dim::DimInt<1>, std::size_t> _buf;
+  using buf_t = alpaka::mem::buf::Buf<device_t, char, alpaka::dim::DimInt<1>, std::size_t>;
+  buf_t _buf;
   void *      _base;
   Element *   _data;
   std::size_t _entity_index;
@@ -103,6 +103,11 @@ struct DeviceDataBuffer {
   {
   }
 
+  
+  buf_t& buf() {
+    return _buf;
+  }
+
   ALPAKA_FN_HOST_ACC
   Meta &meta()
   {
@@ -110,14 +115,14 @@ struct DeviceDataBuffer {
     return *reinterpret_cast<Meta *>(_base);
   }
 
-  ALPAKA_FN_HOST_ACC
+  ALPAKA_FN_HOST
   meta_view_t meta_view()
   {
     return alpaka::mem::view::createStaticDevMemView(
         &meta(), entity().device(), static_cast<std::size_t>(1));
   }
 
-  ALPAKA_FN_HOST_ACC
+  ALPAKA_FN_HOST
   data_view_t data_view()
   {
     return alpaka::mem::view::createStaticDevMemView(
@@ -170,7 +175,7 @@ class HostDataBuffer {
   using DeviceBuf =
       DeviceDataBuffer<NonConstElement, Device, Dim, Alignment>;
   using HostBuf =
-      alpaka::mem::view::ViewPlainPtr<Host, NonConstElement, DimInt, Idx>;
+      alpaka::mem::buf::Buf<Host, char, alpaka::dim::DimInt<1>, std::size_t>;
 
   static constexpr size_t MetaOffset =
       sizeof(Meta) + sizeof(Meta) % Alignment::value;

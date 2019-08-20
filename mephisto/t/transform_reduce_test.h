@@ -5,7 +5,6 @@
 #include <alpaka/alpaka.hpp>
 #include <libdash.h>
 #include <mephisto/array>
-#include <mephisto/algorithm/for_each>
 
 int meph_argc;
 char** meph_argv;
@@ -43,17 +42,6 @@ public:
   using PltfHost = alpaka::pltf::Pltf<DevHost>;
   using PltfAcc  = alpaka::pltf::Pltf<DevAcc>;
 
-  // The mephisto kernel to use in the executor
-  using Kernel = mephisto::ForEachWithIndexKernel;
-
-};
-
-// This needs to be defined outside of TEST_F for nvcc.
-struct ForEachClb {
-  Data operator()(const Data &data) const
-  {
-    return Data{data.x + 1, data.y + 2, data.z + 3};
-  }
 };
 
 #endif

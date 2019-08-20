@@ -5,9 +5,6 @@
 #include <libdash.h>
 #include <alpaka/alpaka.hpp>
 #include <memory>
-#include <mephisto/algorithm/copy>
-#include <mephisto/algorithm/for_each>
-#include <mephisto/buffer>
 #include <mephisto/util>
 
 #include <mephisto/internal/logging.hpp>
@@ -98,12 +95,13 @@ struct AlpakaExecutor {
     auto &      result   = result_f();
     std::size_t block_nr = 0;
 
+    auto host = alpaka::dev::DevCpu{
+            alpaka::pltf::getDevByIdx<alpaka::pltf::PltfCpu>(0u)};
+
     // Assume we have a LocalPattern that lets us iterate over local blocks
     // for each accelerator
     auto host_result_view = alpaka::mem::view::createStaticDevMemView(
-        ::mephisto::begin(result),
-        alpaka::dev::DevCpu{
-            alpaka::pltf::getDevByIdx<alpaka::pltf::PltfCpu>(0u)},
+        ::mephisto::begin(result), host,
         ::mephisto::buf_size(result));
     for (auto const &entity : ctx->entities()) {
       auto result_buf = alpaka::mem::buf::alloc<result_value_t, std::size_t>(
@@ -132,13 +130,13 @@ struct AlpakaExecutor {
             static_cast<typename Shape::pointer>(iter.globmem().begin()) +
             pattern.local_at(offsets);
 
-        auto host_buf =
-            mephisto::HostDataBuffer<value_type, Entity, PatternT::ndim()>{
-                block, block_begin.local()};
+        auto host_buf = alpaka::mem::view::createStaticDevMemView(block_begin.local(), host, extents);
 
 
         // 3. copy the buffer to the entity
-        auto device_buf = mephisto::put(queue, host_buf, entity);
+        using device_buf_t = alpaka::mem::buf::Buf<typename Entity::dev_t, value_type, dim, std::size_t>;
+        auto device_buf = device_buf_t(alpaka::mem::buf::alloc<value_type, std::size_t>(entity.device(), extents));
+        alpaka::mem::view::copy(queue, device_buf, host_buf, extents);
 
         // 4. work
         Kernel<Function> kernel(f);
@@ -147,12 +145,13 @@ struct AlpakaExecutor {
             workDiv,
             kernel,
             block_nr++,
-            device_buf.begin(),
+            alpaka::mem::view::getPtrNative(device_buf),
             alpaka::mem::view::getPtrNative(result_buf),
             block.size()));
 
         alpaka::queue::enqueue(queue, taskKernel);
 
+        // copy result buffer back to host
         alpaka::mem::view::copy(
             queue,
             host_result_view,

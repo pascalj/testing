@@ -21,7 +21,8 @@ template <
 struct Entity {
   using alpaka_dim_t = alpaka::dim::DimInt<Dim>;
   using acc_t  = AlpakaAcc<alpaka_dim_t, Size>;
-  using pltf_t = alpaka::pltf::Pltf<acc_t>;
+  using dev_t  = alpaka::dev::Dev<acc_t>;
+  using pltf_t = alpaka::pltf::Pltf<dev_t>;
 
   constexpr static std::size_t NDim = Dim;
 
