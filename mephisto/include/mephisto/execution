@@ -8,58 +8,15 @@
 #include <mephisto/util>
 
 #include <mephisto/internal/logging.hpp>
+#include <mephisto/internal/kernels.hpp>
 
 namespace mephisto {
 namespace execution {
 
-template <typename F>
-class Kernel {
-  F _func;
-public:
-
-  Kernel(F func) : _func(func) {}
-
-  ALPAKA_NO_HOST_ACC_WARNING
-  template <typename TAcc, typename TElem, typename TRes, typename TIdx>
-  ALPAKA_FN_ACC auto operator()(
-      TAcc const & acc,
-      const std::size_t block_index,
-      TElem *const A,
-      TRes *       res,
-      TIdx const & numElements) const -> void
-  {
-    const uint32_t blockIndex(static_cast<uint32_t>(
-        alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0]));
-    const uint32_t threadIndex(static_cast<uint32_t>(
-        alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)[0]));
-    const uint32_t gridDimension(static_cast<uint32_t>(
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0]));
-    const uint32_t threadElementExtent(static_cast<uint32_t>(
-        alpaka::workdiv::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc).prod()));
-
-    const uint32_t i(static_cast<uint32_t>(
-        alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
-
-    TIdx const threadFirstElemIdx(i * threadElementExtent);
-
-    if (threadFirstElemIdx < numElements) {
-      TIdx const threadLastElemIdx(threadFirstElemIdx + threadElementExtent);
-      TIdx const threadLastElemIdxClipped(
-          (numElements > threadLastElemIdx) ? threadLastElemIdx
-                                            : numElements);
-      for (TIdx a(threadFirstElemIdx); a < threadLastElemIdxClipped; ++a) {
-        _func(i, a, res, A);
-      }
-    }
-  }
-};
-
-
-
 /**
  * An executor that uses alpaka to do the work.
  */
-template <class AlpakaContext>
+template <class AlpakaContext, template <class> class Kernel = UniversalKernel>
 struct AlpakaExecutor {
   AlpakaContext *ctx;
 
@@ -157,6 +114,7 @@ struct AlpakaExecutor {
             host_result_view,
             result_buf,
             ::mephisto::buf_size(result));
+
       }
     }
   }
@@ -164,6 +122,10 @@ struct AlpakaExecutor {
   AlpakaContext &context() const
   {
     return ctx;
+  }
+
+  auto prefer(dash::execution::reduction_executor&&) {
+    return AlpakaExecutor<AlpakaContext, ReduceKernel>{ctx};
   }
 
   unsigned int concurrency() const {
