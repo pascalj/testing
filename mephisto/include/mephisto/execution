@@ -49,7 +49,7 @@ struct AlpakaExecutor {
     using result_value_t    = typename std::decay<result_type>::type::value_type;
 
     auto &      queue    = ctx->queue();
-    auto &      result   = result_f();
+    auto        result   = result_f();
     std::size_t block_nr = 0;
 
     auto host = alpaka::dev::DevCpu{
@@ -72,9 +72,11 @@ struct AlpakaExecutor {
         // 1. create workdiv from block
         auto extents = alpaka::vec::createVecFromIndexedFnWorkaround<dim, std::size_t, arr_to_vec>(
             block.extents());
+        char *nblocks;
+        nblocks = getenv("NBLOCKS");
         auto thread_extent =
             alpaka::vec::createVecFromIndexedFnWorkaround<dim, std::size_t, unity_vec>(
-                  static_cast<std::size_t>(block.size() / 4));
+                  static_cast<std::size_t>(block.size() / atoi(nblocks)));
 
         auto offsets = block.offsets();
 
@@ -168,6 +170,7 @@ struct AlpakaExecutionContext {
 template <class Executor>
 struct ParallelPolicy {
   Executor ex;
+  using acc_t = typename std::decay<Executor>::type::Acc;
 
   ParallelPolicy(Executor &&ex)
     : ex(ex)

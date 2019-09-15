@@ -156,29 +156,26 @@ public:
       TRes *            res,
       TIdx const &      numElements) const -> void
   {
-    const uint32_t blockIndex(static_cast<uint32_t>(
-        alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0]));
-    const uint32_t threadIndex(static_cast<uint32_t>(
-        alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)[0]));
-    const uint32_t gridDimension(static_cast<uint32_t>(
-        alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0]));
-    const uint32_t threadElementExtent(static_cast<uint32_t>(
-        alpaka::workdiv::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc).prod()));
+    /* const uint32_t blockIndex(static_cast<uint32_t>( */
+    /*     alpaka::idx::getIdx<alpaka::Grid, alpaka::Blocks>(acc)[0])); */
+    /* const uint32_t threadIndex(static_cast<uint32_t>( */
+    /*     alpaka::idx::getIdx<alpaka::Block, alpaka::Threads>(acc)[0])); */
+    /* const uint32_t gridDimension(static_cast<uint32_t>( */
+    /*     alpaka::workdiv::getWorkDiv<alpaka::Grid, alpaka::Blocks>(acc)[0])); */
+    /* const uint32_t threadElementExtent(static_cast<uint32_t>( */
+    /*     alpaka::workdiv::getWorkDiv<alpaka::Thread, alpaka::Elems>(acc).prod())); */
 
-    const uint32_t i(static_cast<uint32_t>(
-        alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0]));
+    /* const uint32_t i(static_cast<uint32_t>( */
+    /*     alpaka::idx::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0])); */
 
-    TIdx const threadFirstElemIdx(i * threadElementExtent);
+    /* TIdx const threadFirstElemIdx(i * threadElementExtent); */
 
-    if (threadFirstElemIdx < numElements) {
-      TIdx const threadLastElemIdx(threadFirstElemIdx + threadElementExtent);
-      TIdx const threadLastElemIdxClipped(
-          (numElements > threadLastElemIdx) ? threadLastElemIdx
-                                            : numElements);
-      for (TIdx a(threadFirstElemIdx); a < threadLastElemIdxClipped; ++a) {
-        _func(i, a, res, A);
-      }
-    }
+    /* if (threadFirstElemIdx < numElements) { */
+    /*   TIdx const threadLastElemIdx(threadFirstElemIdx + threadElementExtent); */
+    /*   TIdx const threadLastElemIdxClipped( */
+    /*       (numElements > threadLastElemIdx) ? threadLastElemIdx */
+    /*                                         : numElements); */
+    _func(acc, block_index, res, A);
   }
 };
 }  // namespace execution
