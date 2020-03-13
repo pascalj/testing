@@ -6,3 +6,6 @@
 	path = dash
 	url = git@github.com:pascalj/dash.git
 	branch = mephisto-reduce
+[submodule "dash-bench"]
+	path = dash-bench
+	url = https://github.com/pascalj/dash-bench
