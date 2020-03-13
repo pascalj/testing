@@ -6,6 +6,3 @@
 	path = dash
 	url = git@github.com:pascalj/dash.git
 	branch = feat-local-array
-[submodule "gtest"]
-	path = gtest
-	url = https://github.com/google/googletest.git
